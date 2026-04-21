@@ -1,0 +1,256 @@
+import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { FlaskConical, User, BookOpen, Heart, Target, Loader2, Sparkles } from 'lucide-react'
+import { useCDT } from '../store/CDTContext'
+import { analyzeMock } from '../utils/mockApi'
+import './Analyzer.css'
+
+const GOALS = ['Data Scientist', 'ML Engineer', 'AI Researcher', 'Software Engineer', 'Data Analyst']
+
+const DEFAULT = {
+  name: 'Student Alpha',
+  cgpa: 6.5,
+  attendance: 78,
+  study_hours_per_week: 25,
+  assignment_score: 65,
+  exam_score: 60,
+  sleep_hours: 6.5,
+  extracurricular: 1,
+  mental_health_score: 6.0,
+  library_visits: 3,
+  online_course_hours: 2.0,
+  peer_study_sessions: 2,
+  semester: 4,
+  goal: 'Data Scientist',
+  resume_text: 'Experienced in Python and Machine Learning. Worked on projects involving SQL and Statistics. Interested in Deep Learning and NLP. Strong background in Data Analysis and Research.',
+}
+
+function SliderField({ label, name, min, max, step = 1, value, onChange, unit = '' }) {
+  return (
+    <div className="slider-wrap">
+      <div className="slider-label">
+        <span className="slider-name">{label}</span>
+        <span className="slider-value">{value}{unit}</span>
+      </div>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={e => onChange(name, parseFloat(e.target.value))}
+      />
+      <div className="slider-minmax">
+        <span>{min}{unit}</span>
+        <span>{max}{unit}</span>
+      </div>
+    </div>
+  )
+}
+
+export default function Analyzer() {
+  const [form, setForm] = useState(DEFAULT)
+  const { setAnalysisResult, setStudentInput, setIsAnalyzing, isAnalyzing } = useCDT()
+  const navigate = useNavigate()
+
+  const handleChange = (name, value) => {
+    setForm(prev => ({ ...prev, [name]: value }))
+  }
+
+  const handleSubmit = async () => {
+    setIsAnalyzing(true)
+    setStudentInput(form)
+    try {
+      // Try real API, fall back to mock
+      let result
+      try {
+        const res = await fetch('/api/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(form),
+        })
+        if (res.ok) {
+          result = await res.json()
+        } else {
+          result = analyzeMock(form)
+        }
+      } catch {
+        result = analyzeMock(form)
+      }
+      setAnalysisResult(result)
+      navigate('/results')
+    } finally {
+      setIsAnalyzing(false)
+    }
+  }
+
+  return (
+    <div className="analyzer animate-fade-in">
+      {/* Header */}
+      <div className="analyzer__header">
+        <div className="page-eyebrow">
+          <FlaskConical size={16} className="text-gold" />
+          <span className="section-label">Input Module</span>
+        </div>
+        <h1 className="page-title">Student Profile Setup</h1>
+        <p className="page-desc text-secondary">
+          Enter your academic metrics to generate a full Cognitive Digital Twin analysis across all 6 AI modules.
+        </p>
+      </div>
+
+      <div className="analyzer__body">
+        {/* Left: Form sections */}
+        <div className="form-sections">
+          {/* Identity */}
+          <div className="form-section card animate-fade-up delay-1">
+            <div className="form-section__header">
+              <User size={16} className="text-cyan" />
+              <h2 className="form-section__title">Identity</h2>
+            </div>
+            <div className="form-grid-2">
+              <div className="field">
+                <label className="field-label">Student Name</label>
+                <input
+                  className="input"
+                  value={form.name}
+                  onChange={e => handleChange('name', e.target.value)}
+                  placeholder="Enter name"
+                />
+              </div>
+              <div className="field">
+                <label className="field-label">Semester</label>
+                <select className="input" value={form.semester} onChange={e => handleChange('semester', parseInt(e.target.value))}>
+                  {[1,2,3,4,5,6,7,8].map(s => <option key={s} value={s}>Semester {s}</option>)}
+                </select>
+              </div>
+              <div className="field">
+                <label className="field-label">Career Goal</label>
+                <select className="input" value={form.goal} onChange={e => handleChange('goal', e.target.value)}>
+                  {GOALS.map(g => <option key={g} value={g}>{g}</option>)}
+                </select>
+              </div>
+              <div className="field">
+                <label className="field-label">Extracurricular</label>
+                <select className="input" value={form.extracurricular} onChange={e => handleChange('extracurricular', parseInt(e.target.value))}>
+                  <option value={0}>None</option>
+                  <option value={1}>Some Activities</option>
+                  <option value={2}>Heavy Involvement</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Academic */}
+          <div className="form-section card animate-fade-up delay-2">
+            <div className="form-section__header">
+              <BookOpen size={16} className="text-gold" />
+              <h2 className="form-section__title">Academic Metrics</h2>
+            </div>
+            <div className="sliders-grid">
+              <SliderField label="CGPA" name="cgpa" min={2} max={10} step={0.1} value={form.cgpa} onChange={handleChange} />
+              <SliderField label="Attendance" name="attendance" min={20} max={100} value={form.attendance} onChange={handleChange} unit="%" />
+              <SliderField label="Study Hours / Week" name="study_hours_per_week" min={1} max={70} value={form.study_hours_per_week} onChange={handleChange} unit="h" />
+              <SliderField label="Assignment Score" name="assignment_score" min={0} max={100} value={form.assignment_score} onChange={handleChange} />
+              <SliderField label="Exam Score" name="exam_score" min={0} max={100} value={form.exam_score} onChange={handleChange} />
+              <SliderField label="Library Visits / Month" name="library_visits" min={0} max={20} value={form.library_visits} onChange={handleChange} />
+              <SliderField label="Online Course Hours / Week" name="online_course_hours" min={0} max={20} step={0.5} value={form.online_course_hours} onChange={handleChange} unit="h" />
+              <SliderField label="Peer Study Sessions / Week" name="peer_study_sessions" min={0} max={10} value={form.peer_study_sessions} onChange={handleChange} />
+            </div>
+          </div>
+
+          {/* Wellbeing */}
+          <div className="form-section card animate-fade-up delay-3">
+            <div className="form-section__header">
+              <Heart size={16} className="text-red" />
+              <h2 className="form-section__title">Wellbeing</h2>
+            </div>
+            <div className="sliders-grid">
+              <SliderField label="Sleep Hours / Night" name="sleep_hours" min={3} max={10} step={0.5} value={form.sleep_hours} onChange={handleChange} unit="h" />
+              <SliderField label="Mental Health Score" name="mental_health_score" min={1} max={10} step={0.5} value={form.mental_health_score} onChange={handleChange} />
+            </div>
+          </div>
+
+          {/* Resume */}
+          <div className="form-section card animate-fade-up delay-4">
+            <div className="form-section__header">
+              <Target size={16} className="text-purple" />
+              <h2 className="form-section__title">Resume Text <span className="text-muted" style={{fontWeight:400, fontSize:12}}>(for NLP skill extraction)</span></h2>
+            </div>
+            <textarea
+              className="input"
+              rows={5}
+              value={form.resume_text}
+              onChange={e => handleChange('resume_text', e.target.value)}
+              placeholder="Describe your skills, experience, and interests..."
+            />
+            <p className="field-hint text-muted">
+              The NLP module will extract skills, run POS tagging, TF-IDF analysis, and N-gram extraction from this text.
+            </p>
+          </div>
+        </div>
+
+        {/* Right: Preview panel */}
+        <div className="preview-panel animate-fade-up delay-2">
+          <div className="preview-card card">
+            <p className="section-label">Live Preview</p>
+            <h3 className="preview-name">{form.name || 'Student'}</h3>
+            <p className="text-muted preview-goal">→ {form.goal}</p>
+
+            <div className="divider" />
+
+            <div className="preview-metrics">
+              {[
+                { label: 'CGPA', value: form.cgpa, max: 10, color: form.cgpa >= 7 ? 'green' : form.cgpa >= 5 ? 'gold' : 'red' },
+                { label: 'Attendance', value: form.attendance, max: 100, unit: '%', color: form.attendance >= 75 ? 'green' : form.attendance >= 60 ? 'gold' : 'red' },
+                { label: 'Exam Score', value: form.exam_score, max: 100, color: form.exam_score >= 60 ? 'green' : form.exam_score >= 40 ? 'gold' : 'red' },
+                { label: 'Study Hrs/Wk', value: form.study_hours_per_week, max: 70, unit: 'h', color: 'cyan' },
+                { label: 'Sleep Hrs', value: form.sleep_hours, max: 10, unit: 'h', color: form.sleep_hours >= 6 ? 'green' : 'red' },
+                { label: 'Mental Health', value: form.mental_health_score, max: 10, color: form.mental_health_score >= 6 ? 'green' : form.mental_health_score >= 4 ? 'gold' : 'red' },
+              ].map(m => (
+                <div key={m.label} className="preview-metric">
+                  <div className="preview-metric__row">
+                    <span className="preview-metric__label">{m.label}</span>
+                    <span className={`preview-metric__val text-${m.color}`}>
+                      {m.value}{m.unit || ''}
+                    </span>
+                  </div>
+                  <div className="progress-bar">
+                    <div
+                      className={`progress-fill bg-${m.color}`}
+                      style={{ width: `${(m.value / m.max) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="divider" />
+
+            <div className="preview-status">
+              <p className="section-label">Quick Assessment</p>
+              {form.cgpa < 5 && <div className="alert-chip alert-chip--red">⚠ Critical CGPA</div>}
+              {form.attendance < 75 && <div className="alert-chip alert-chip--orange">⚠ Low Attendance</div>}
+              {form.sleep_hours < 5 && <div className="alert-chip alert-chip--orange">⚠ Sleep Deprived</div>}
+              {form.mental_health_score < 4 && <div className="alert-chip alert-chip--red">⚠ Mental Health Risk</div>}
+              {form.study_hours_per_week > 55 && form.sleep_hours < 5.5 && <div className="alert-chip alert-chip--red">⚠ Burnout Risk</div>}
+              {form.cgpa >= 7 && form.attendance >= 80 && <div className="alert-chip alert-chip--green">✓ On Track</div>}
+              {form.cgpa >= 8 && <div className="alert-chip alert-chip--green">✓ Excellence Track</div>}
+            </div>
+
+            <button
+              className="btn btn-primary analyze-btn"
+              onClick={handleSubmit}
+              disabled={isAnalyzing}
+            >
+              {isAnalyzing ? (
+                <><Loader2 size={16} className="spin" /> Analyzing...</>
+              ) : (
+                <><Sparkles size={16} /> Run CDT Analysis</>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}

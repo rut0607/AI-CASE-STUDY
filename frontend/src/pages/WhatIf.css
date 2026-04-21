@@ -1,0 +1,73 @@
+.whatif { display: flex; flex-direction: column; gap: 24px; }
+.whatif__header { max-width: 640px; }
+
+.param-selector { padding: 20px; }
+.param-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.param-btn {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: var(--transition);
+  text-align: left;
+}
+.param-btn:hover { border-color: var(--border-normal); background: var(--bg-hover); }
+.param-btn--active {
+  border-color: var(--border-accent);
+  background: rgba(245,200,66,0.06);
+}
+.param-btn__label { font-size: 12px; font-weight: 500; color: var(--text-primary); line-height: 1.3; }
+.param-btn__current { font-size: 13px; color: var(--accent-gold); margin-top: 2px; }
+
+/* Snapshot */
+.snapshot-card { padding: 20px; }
+.snapshot-vals {
+  display: flex;
+  gap: 40px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+.snapshot-big {
+  font-size: 32px;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.snapshot-sub { font-size: 11px; }
+
+/* Charts */
+.whatif-charts { display: flex; flex-direction: column; gap: 16px; }
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+/* Insights */
+.insights-card { padding: 20px; }
+.insights-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 16px; }
+.insight { display: flex; gap: 12px; align-items: flex-start; }
+.insight-icon { font-size: 22px; flex-shrink: 0; }
+.insight-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+.insight-desc { font-size: 13px; line-height: 1.5; }
+
+@media (max-width: 900px) {
+  .param-grid { grid-template-columns: repeat(3, 1fr); }
+  .insights-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .param-grid { grid-template-columns: repeat(2, 1fr); }
+  .snapshot-vals { gap: 20px; }
+}
