@@ -72,29 +72,36 @@ cd backend
 pip install -r requirements.txt
 ```
 
-**2. Configure backend environment (.env in project root):**
+**2. Configure backend environment (`backend/.env`):**
 ```bash
 MONGO_URI=mongodb://localhost:27017
 MONGO_DB_NAME=cdt
-JWT_SECRET=change-me-in-production
+JWT_SECRET=replace-with-a-long-random-secret
 JWT_ALGORITHM=HS256
 JWT_EXPIRE_MINUTES=1440
 CORS_ORIGINS=http://localhost:5173,http://localhost:3000
+PORT=8000
 ```
 
-**3. Start backend (from project root):**
+**3. Configure frontend environment (`frontend/.env`):**
+```bash
+VITE_API_BASE_URL=http://localhost:8000
+VITE_PROXY_TARGET=http://localhost:8000
+```
+
+**4. Start backend (from project root):**
 ```bash
 python -m uvicorn backend.main:app --reload --port 8000
 ```
 
-**4. Start frontend (new terminal):**
+**5. Start frontend (new terminal):**
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-**5. Sign in from Analyzer page:**
+**6. Sign in from Analyzer page:**
 - Use the "Backend Access" panel to sign up or sign in.
 - Authenticated runs call protected `/api/analyze` and persist to MongoDB.
 - `GET /api/history` is used to load recent analysis history.

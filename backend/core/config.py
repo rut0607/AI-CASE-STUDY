@@ -1,21 +1,27 @@
 from __future__ import annotations
 
+import json
 from functools import lru_cache
+from pathlib import Path
+from typing import Annotated
 
 from pydantic import Field, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
+
+
+BACKEND_ROOT = Path(__file__).resolve().parents[1]
 
 
 class Settings(BaseSettings):
-    MONGO_URI: str = "mongodb://localhost:27017"
-    MONGO_DB_NAME: str = "cdt"
-    JWT_SECRET: str = Field(default="change-me-in-production", min_length=8)
-    JWT_ALGORITHM: str = "HS256"
-    JWT_EXPIRE_MINUTES: int = 60 * 24
-    CORS_ORIGINS: list[str] = ["http://localhost:5173", "http://localhost:3000"]
+    MONGO_URI: str
+    MONGO_DB_NAME: str
+    JWT_SECRET: str = Field(min_length=8)
+    JWT_ALGORITHM: str
+    JWT_EXPIRE_MINUTES: int
+    CORS_ORIGINS: Annotated[list[str], NoDecode]
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=str(BACKEND_ROOT / ".env"),
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",
@@ -27,8 +33,14 @@ class Settings(BaseSettings):
         if isinstance(value, list):
             return value
         if isinstance(value, str):
+            try:
+                parsed = json.loads(value)
+            except json.JSONDecodeError:
+                parsed = None
+            if isinstance(parsed, list):
+                return [str(item).strip() for item in parsed if str(item).strip()]
             return [item.strip() for item in value.split(",") if item.strip()]
-        return ["http://localhost:5173", "http://localhost:3000"]
+        raise ValueError("CORS_ORIGINS must be a list or comma-separated string")
 
 
 @lru_cache(maxsize=1)
